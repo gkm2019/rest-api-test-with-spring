@@ -6,7 +6,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -23,24 +25,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@SpringBootTest
+@AutoConfigureMockMvc
 public class EventControllerTest {
-    //네이버 같은 경우는 응답을 구분한다.
-    //api.json -> json으로 응답
-    //api.xml -> xml으로 응답
-    //accept header로 지정해서 데이터 형식 정하는게 더 좋은 방법이다.
     @Autowired
     MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper; //object 형식을 json으로 바꾸어준다.
-
-    //기존의 EventRepository를 만들어놓기만 하면, web전용의 repository만 만들어준다.
-    //mockBean사용해서 eventRepository 만들어달라고 요청함
-    //mock객체는 그냥 save()하면 null만 나온다.
-    //save호출됐을때 어떻게 동작할지 mockito.when("조건").thenReturn("결과") 명시해주기
-    @MockBean
-    EventRepository eventRepository;
+    ObjectMapper objectMapper;
 
     @Test
     public void createEvnet() throws Exception {
