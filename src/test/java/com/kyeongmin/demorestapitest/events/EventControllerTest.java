@@ -1,6 +1,7 @@
 package com.kyeongmin.demorestapitest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -60,9 +61,6 @@ public class EventControllerTest {
                 .location("kangNam Station D2 startUP factory")
                 .build();
 
-        event.setId(10);
-        Mockito.when(eventRepository.save(event)).thenReturn(event);
-
         mockMvc.perform(post("/api/events/")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaTypes.HAL_JSON)
@@ -74,6 +72,9 @@ public class EventControllerTest {
                 //ver1 : .andExpect(header().exists("Location"))
                 .andExpect(header().exists(HttpHeaders.LOCATION)) //ver2 이렇게 해도됨
                 //ver1 : .andExpect(header().string("Content-Type", "application/hal+json"))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id").value(Matchers.not(100))) //id는 100이면 안됨
+                .andExpect(jsonPath("free").value(Matchers.not(true)))
+        ;
     }
 }
