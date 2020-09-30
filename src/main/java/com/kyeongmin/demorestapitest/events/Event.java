@@ -26,7 +26,7 @@ public class Event {
     private boolean free;
 
     @Enumerated(EnumType.STRING)
-    private EventStatus eventStatus;
+    private EventStatus eventStatus = EventStatus.DRAFT;
     //@Enumerated(EnumType.ORDINAL) //enum순서대로 받아진다. 그럼 꼬일 수 있음 String 권장
 
 }

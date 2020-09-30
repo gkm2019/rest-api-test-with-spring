@@ -36,11 +36,7 @@ public class EventControllerTest {
 
     @Test
     public void createEvnet() throws Exception {
-        //perform안에 있는 것이 요청임
-        //andExpect()안에 응답 담긴다.
-        //status().isCreated() 응답 201의미한다.
-
-        Event event = Event.builder()
+        EventDTO event = EventDTO.builder()
                 .name("spring")
                 .description("rest api dev with spring")
                 .beginEnrollmentDateTime(LocalDateTime.of(2020, 9, 30, 23, 28))
@@ -60,13 +56,40 @@ public class EventControllerTest {
                 .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").exists())//id가 존재하는지 확인 exists()
-                //heaer()값 확인하기
-                //ver1 : .andExpect(header().exists("Location"))
-                .andExpect(header().exists(HttpHeaders.LOCATION)) //ver2 이렇게 해도됨
-                //ver1 : .andExpect(header().string("Content-Type", "application/hal+json"))
+                .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("id").value(Matchers.not(100))) //id는 100이면 안됨
                 .andExpect(jsonPath("free").value(Matchers.not(true)))
+                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+        ;
+    }
+
+    @Test
+    public void createEvnet_Bad_Request() throws Exception {
+        Event event = Event.builder()
+                .id(100)
+                .name("spring")
+                .description("rest api dev with spring")
+                .beginEnrollmentDateTime(LocalDateTime.of(2020, 9, 30, 23, 28))
+                .closeEnrollmentDateTime(LocalDateTime.of(2020, 10, 1, 23, 28))
+                .beginEventDateTime(LocalDateTime.of(2020, 10, 2, 23, 28))
+                .endEventDateTime(LocalDateTime.of(2020, 10, 3, 23, 28))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("kangNam Station D2 startUP factory")
+                .free(true)
+                .offline(false)
+                .eventStatus(EventStatus.PUBLISHED)
+                .build();
+
+        mockMvc.perform(post("/api/events/")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(event)))
+                .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
+                .andExpect(status().isBadRequest()) //bad request
+
         ;
     }
 }
