@@ -1,6 +1,7 @@
 package com.kyeongmin.demorestapitest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyeongmin.demorestapitest.common.TestDescription;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,7 @@ public class EventControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @TestDescription("정상적으로 이벤트를 생성하는 Test")
     public void createEvnet() throws Exception {
         EventDTO event = EventDTO.builder()
                 .name("spring")
@@ -60,7 +62,8 @@ public class EventControllerTest {
         ;
     }
 
-    @Test //잘못된 값이 전달 될 경우 Bad req처리해야함
+    @Test
+    @TestDescription("입력 받을 수 없는 값이 전달될 경우 error발생하는 Test")
     public void createEvnet_Bad_Request() throws Exception {
         Event event = Event.builder()
                 .id(100)
@@ -89,7 +92,8 @@ public class EventControllerTest {
         ;
     }
 
-    @Test //비어있는 값이 전달된 경우 bad req처리해야함
+    @Test
+    @TestDescription("입력값이 비어있는 경우 error 발생하는 Test")
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
         EventDTO eventDTO = EventDTO.builder().build(); //아무값도 없이 보내보자(비어있는 값)
         this.mockMvc.perform(post("/api/events/")
@@ -99,7 +103,8 @@ public class EventControllerTest {
         ;
     }
 
-    @Test //비어있는 값이 전달된 경우 bad req처리해야함
+    @Test
+    @TestDescription("입력값이 잘못 된 경우 error 발생하는 Test")
     public void createEvent_Bad_Request_Wrong_Input() throws Exception {
         EventDTO eventDTO = EventDTO.builder()
                 .name("spring")
@@ -120,4 +125,6 @@ public class EventControllerTest {
                 .andExpect(status().isBadRequest())
         ;
     }
+
+
 }
