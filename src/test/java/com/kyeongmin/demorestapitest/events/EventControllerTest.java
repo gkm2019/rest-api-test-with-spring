@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,10 +16,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -39,7 +40,7 @@ public class EventControllerTest {
     //save호출됐을때 어떻게 동작할지 mockito.when("조건").thenReturn("결과") 명시해주기
     @MockBean
     EventRepository eventRepository;
-    
+
     @Test
     public void createEvnet() throws Exception {
         //perform안에 있는 것이 요청임
@@ -68,6 +69,11 @@ public class EventControllerTest {
                 .content(objectMapper.writeValueAsString(event)))
                 .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").exists());//id가 존재하는지 확인 exists()
+                .andExpect(jsonPath("id").exists())//id가 존재하는지 확인 exists()
+                //heaer()값 확인하기
+                //ver1 : .andExpect(header().exists("Location"))
+                .andExpect(header().exists(HttpHeaders.LOCATION)) //ver2 이렇게 해도됨
+                //ver1 : .andExpect(header().string("Content-Type", "application/hal+json"))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
     }
 }
