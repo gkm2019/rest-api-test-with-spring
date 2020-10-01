@@ -38,16 +38,14 @@ public class EventController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Event event = modelMapper.map(eventDTO, Event.class); //event만들고
-        //event갱신해서 무료 여부 갱신
+        Event event = modelMapper.map(eventDTO, Event.class);
         event.update();
         Event newEvent = this.eventRepository.save(event);
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
         URI createdURI = selfLinkBuilder.toUri();
         EventResource eventResource = new EventResource(event);
-        eventResource.add(linkTo(EventController.class).withRel("query-events")); //링크 생성
-        //eventResource.add(selfLinkBuilder.withSelfRel()); //self로 가는 link resource에서 이미 만들어줬음 삭제 해도됨
-        eventResource.add(selfLinkBuilder.withRel("update-event")); //update event
-        return ResponseEntity.created(createdURI).body(eventResource); //event를 resource로 바꿔줌
+        eventResource.add(linkTo(EventController.class).withRel("query-events"));
+        eventResource.add(selfLinkBuilder.withRel("update-event"));
+        return ResponseEntity.created(createdURI).body(eventResource);
     }
 }

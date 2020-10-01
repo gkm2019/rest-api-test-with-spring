@@ -1,12 +1,15 @@
 package com.kyeongmin.demorestapitest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyeongmin.demorestapitest.common.RestDocsConfiguration;
 import com.kyeongmin.demorestapitest.commons.TestDescription;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,6 +18,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -22,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureRestDocs
+@Import(RestDocsConfiguration.class) //다른 bean 불러와서 사용
 public class EventControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -60,6 +70,63 @@ public class EventControllerTest {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.query-events").exists()) //이벤트 목록으로 가는 링크
                 .andExpect(jsonPath("_links.update-event").exists()) //이벤트 목록 update하는 링크
+                //.andDo(document("이 문서의 이름"))
+                //snippet추가는 andDo document안에다 해야한다.
+                .andDo(document("create-event",
+                        links(
+                                linkWithRel("self").description("link to self"),
+                                linkWithRel("query-events").description("link to query events"),
+                                linkWithRel("update-event").description("link to update an existing event")
+                        ),
+                        requestHeaders(
+                                //content type 확인해보기
+                                headerWithName(HttpHeaders.ACCEPT).description("location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields( //요청필드
+                                //요청으로 받는 것은?
+                                fieldWithPath("name").description("name of new event"),
+                                fieldWithPath("description").description("description of new event"),
+                                fieldWithPath("beginEnrollmentDateTime").description("date time of begin of new event"),
+                                fieldWithPath("closeEnrollmentDateTime").description("date time of close of new event"),
+                                fieldWithPath("beginEventDateTime").description("date time of begin of new event"),
+                                fieldWithPath("endEventDateTime").description("date time of end of new event"),
+                                fieldWithPath("location").description("location of new event"),
+                                fieldWithPath("basePrice").description("base price of new event"),
+                                fieldWithPath("maxPrice").description("max price of new event"),
+                                fieldWithPath("limitOfEnrollment").description("limit of enrollment")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("response header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        //모든 문서를 다 검증하는 것이 아니라
+                        //link를 뺀 일 부분만 검증하고 싶을 때는 relaxed 붙이기
+                        //relaxed 접두어(prefix) 를 사용하면 문서의 일부분만 확인한다.
+                        //장점 : 문서 일부분만 테스트 가능
+                        //단점 : 정확한 문서를 만들지는 못한다(무시해야해서..)
+                        //이미 윗부분 document 에서 link 문서화 했는데 왜 또 여기서 한번 더 검사를 하는지 모르겠다..
+                        //또 다른 방법은? -> 똑같이 링크도 하나하나 다 적어줘야함
+                        relaxedResponseFields(
+                                fieldWithPath("id").description("identifier of new event"),
+                                fieldWithPath("name").description("name of new event"),
+                                fieldWithPath("description").description("description of new event"),
+                                fieldWithPath("beginEnrollmentDateTime").description("date time of begin of new event"),
+                                fieldWithPath("closeEnrollmentDateTime").description("date time of close of new event"),
+                                fieldWithPath("beginEventDateTime").description("date time of begin of new event"),
+                                fieldWithPath("endEventDateTime").description("date time of end of new event"),
+                                fieldWithPath("location").description("location of new event"),
+                                fieldWithPath("basePrice").description("base price of new event"),
+                                fieldWithPath("maxPrice").description("max price of new event"),
+                                fieldWithPath("limitOfEnrollment").description("limit of enrollment"),
+                                fieldWithPath("free").description("it tells if this event is free event or not"),
+                                fieldWithPath("offline").description("it tells if this event is offline event or not"),
+                                fieldWithPath("eventStatus").description("event status")
+                                //fieldWithPath("_links.self.href").description("link to self"),
+                                //fieldWithPath("_links.query-events.href").description("link to query event list"),
+                                //fieldWithPath("_links.update-event.href").description("link to update existing event"),
+                        )
+                ))
         ;
     }
 
