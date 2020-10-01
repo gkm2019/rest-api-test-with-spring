@@ -2,6 +2,7 @@ package com.kyeongmin.demorestapitest.events;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
@@ -41,7 +42,12 @@ public class EventController {
         //event갱신해서 무료 여부 갱신
         event.update();
         Event newEvent = this.eventRepository.save(event);
-        URI createdURI = linkTo(EventController.class).slash(newEvent.getId()).toUri();
-        return ResponseEntity.created(createdURI).body(event);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
+        URI createdURI = selfLinkBuilder.toUri();
+        EventResource eventResource = new EventResource(event);
+        eventResource.add(linkTo(EventController.class).withRel("query-events")); //링크 생성
+        //eventResource.add(selfLinkBuilder.withSelfRel()); //self로 가는 link resource에서 이미 만들어줬음 삭제 해도됨
+        eventResource.add(selfLinkBuilder.withRel("update-event")); //update event
+        return ResponseEntity.created(createdURI).body(eventResource); //event를 resource로 바꿔줌
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,8 +46,8 @@ public class EventControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/events/")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(event)))
                 .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
                 .andExpect(status().isCreated())
@@ -58,6 +57,9 @@ public class EventControllerTest {
                 .andExpect(jsonPath("free").value(false))
                 .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.query-events").exists()) //이벤트 목록으로 가는 링크
+                .andExpect(jsonPath("_links.update-event").exists()) //이벤트 목록 update하는 링크
         ;
     }
 
@@ -82,8 +84,8 @@ public class EventControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/events/")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .accept(MediaTypes.HAL_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(event)))
                 .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
                 .andExpect(status().isBadRequest()) //bad request
@@ -118,7 +120,7 @@ public class EventControllerTest {
                 .location("kangNam Station D2 startUP factory")
                 .build();
 
-        this.mockMvc.perform (post("/api/events/")
+        this.mockMvc.perform(post("/api/events/")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(this.objectMapper.writeValueAsString(eventDTO)))
                 .andExpect(status().isBadRequest())
