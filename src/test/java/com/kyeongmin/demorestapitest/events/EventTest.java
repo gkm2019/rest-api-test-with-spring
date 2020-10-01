@@ -1,9 +1,13 @@
 package com.kyeongmin.demorestapitest.events;
 
-import org.junit.jupiter.api.Test;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(JUnitParamsRunner.class)
 public class EventTest {
     @Test
     public void builder() {
@@ -16,7 +20,7 @@ public class EventTest {
 
     //javabean 규칙 준수, default 생성자
     @Test
-    public void javaBean(){
+    public void javaBean() {
         //Given
         Event event = new Event();
         String name = "Event";
@@ -32,61 +36,48 @@ public class EventTest {
     }
 
     @Test
-    public void testFree(){
+    @Parameters(method = "parametersForTestFree")
+    public void testFree(int basePrice, int maxPrice, boolean isFree) {
         //Given
         Event event = Event.builder()
-                .basePrice(0)
-                .maxPrice(0)
+                .basePrice(basePrice)
+                .maxPrice(maxPrice)
                 .build();
         //When
         event.update();
 
         //Then
-        assertThat(event.isFree()).isTrue();
+        assertThat(event.isFree()).isEqualTo(isFree);
+    }
 
-        //Given
-        event = Event.builder()
-                .basePrice(100)
-                .maxPrice(0)
-                .build();
-        //When
-        event.update();
-
-        //Then
-        assertThat(event.isFree()).isFalse(); //base값이 있으면 free이면 안됨..free=false이어야함
-
-        //Given
-        event = Event.builder()
-                .basePrice(0)
-                .maxPrice(100)
-                .build();
-        //When
-        event.update();
-
-        //Then
-        assertThat(event.isFree()).isFalse(); //max있으면 free면 안됨 (무료 아님)
+    private Object[] parametersForTestFree() {
+        return new Object[]{
+                new Object[]{0, 0, true},
+                new Object[]{100, 0, false},
+                new Object[]{0, 100, false},
+                new Object[]{100, 200, false}
+        };
     }
 
     @Test //온라인/오프라인 여부 test
-    public void testOffline(){
+    @Parameters
+    public void testOffline(String location, boolean isOffline) {
         //Given
         Event event = Event.builder()
-                .location("kangnam station naver D2 factory")
+                .location(location)
                 .build();
         //When
         event.update();
 
         //Then
-        assertThat(event.isOffline()).isTrue(); //장소있으면 offline
+        assertThat(event.isOffline()).isEqualTo(isOffline);
+    }
 
-        //Given
-        event = Event.builder()
-                .build();
-        //When
-        event.update();
-
-        //Then
-        assertThat(event.isOffline()).isFalse(); //장소없으면 false
-
+    private Object[] parametersForTestOffline() {
+        return new Object[]{
+                new Object[]{"kangnam", true},
+                new Object[]{null, false},
+                new Object[]{"   ", false}
+        };
     }
 }
