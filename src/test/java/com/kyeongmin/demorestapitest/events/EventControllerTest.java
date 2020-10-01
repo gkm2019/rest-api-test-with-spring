@@ -1,7 +1,7 @@
 package com.kyeongmin.demorestapitest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyeongmin.demorestapitest.common.TestDescription;
+import com.kyeongmin.demorestapitest.commons.TestDescription;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -95,9 +95,9 @@ public class EventControllerTest {
     @Test
     @TestDescription("입력값이 비어있는 경우 error 발생하는 Test")
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
-        EventDTO eventDTO = EventDTO.builder().build(); //아무값도 없이 보내보자(비어있는 값)
+        EventDTO eventDTO = EventDTO.builder().name("test_test").build(); //아무값도 없이 보내보자(비어있는 값)
         this.mockMvc.perform(post("/api/events/")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(this.objectMapper.writeValueAsString(eventDTO)))
                 .andExpect(status().isBadRequest())
         ;
@@ -120,9 +120,14 @@ public class EventControllerTest {
                 .build();
 
         this.mockMvc.perform(post("/api/events/")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(this.objectMapper.writeValueAsString(eventDTO)))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].rejectedValue").exists())
         ;
     }
 

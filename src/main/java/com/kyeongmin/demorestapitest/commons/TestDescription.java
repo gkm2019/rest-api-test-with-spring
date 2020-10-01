@@ -1,4 +1,4 @@
-package com.kyeongmin.demorestapitest.common;
+package com.kyeongmin.demorestapitest.commons;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
