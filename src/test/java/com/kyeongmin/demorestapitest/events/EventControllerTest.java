@@ -33,7 +33,7 @@ public class EventControllerTest {
 
     @Test
     @TestDescription("정상적으로 이벤트를 생성하는 Test")
-    public void createEvnet() throws Exception {
+    public void createEvent() throws Exception {
         EventDTO event = EventDTO.builder()
                 .name("spring")
                 .description("rest api dev with spring")
@@ -56,15 +56,15 @@ public class EventControllerTest {
                 .andExpect(jsonPath("id").exists())//id가 존재하는지 확인 exists()
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("id").value(Matchers.not(100))) //id는 100이면 안됨
-                .andExpect(jsonPath("free").value(Matchers.not(true)))
+                .andExpect(jsonPath("free").value(false))
+                .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
         ;
     }
 
     @Test
     @TestDescription("입력 받을 수 없는 값이 전달될 경우 error발생하는 Test")
-    public void createEvnet_Bad_Request() throws Exception {
+    public void createEvent_Bad_Request() throws Exception {
         Event event = Event.builder()
                 .id(100)
                 .name("spring")
@@ -119,7 +119,7 @@ public class EventControllerTest {
                 .location("kangNam Station D2 startUP factory")
                 .build();
 
-        this.mockMvc.perform(post("/api/events/")
+        this.mockMvc.perform (post("/api/events/")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(this.objectMapper.writeValueAsString(eventDTO)))
                 .andExpect(status().isBadRequest())
@@ -130,6 +130,4 @@ public class EventControllerTest {
                 .andExpect(jsonPath("$[0].rejectedValue").exists())
         ;
     }
-
-
 }

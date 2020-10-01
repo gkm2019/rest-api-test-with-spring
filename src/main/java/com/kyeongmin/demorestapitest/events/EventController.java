@@ -37,7 +37,9 @@ public class EventController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Event event = modelMapper.map(eventDTO, Event.class);
+        Event event = modelMapper.map(eventDTO, Event.class); //event만들고
+        //event갱신해서 무료 여부 갱신
+        event.update();
         Event newEvent = this.eventRepository.save(event);
         URI createdURI = linkTo(EventController.class).slash(newEvent.getId()).toUri();
         return ResponseEntity.created(createdURI).body(event);
