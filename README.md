@@ -7,7 +7,7 @@ spring 기반 restAPI 공부를 위한 프로젝트입니다.
 
 ## 프로젝트 정보
 * windows 10
-* Spring
+* Spring boot 2.3.4
 * JDK 11
 * H2, PostgreSQL
 
