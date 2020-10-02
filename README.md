@@ -9,7 +9,7 @@ spring 기반 restAPI 공부를 위한 프로젝트입니다.
 * windows 10
 * Spring boot 2.3.4
 * JDK 11
-* H2, PostgreSQL
+* H2, MySQL
 
 ## 의존성
 * Web
@@ -17,7 +17,7 @@ spring 기반 restAPI 공부를 위한 프로젝트입니다.
 * HATEOAS
 * TEST Docs
 * H2
-* PostgreSQL
+* MySQL
 * Lombok
 
 ## 저작권
