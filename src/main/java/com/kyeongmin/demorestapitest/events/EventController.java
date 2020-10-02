@@ -35,11 +35,11 @@ public class EventController {
     @PostMapping
     public ResponseEntity createEvent(@RequestBody @Valid EventDTO eventDTO, Errors errors) {
         if(errors.hasErrors()){
-            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+            return badRequest(errors);
         }
         eventValidator.validate(eventDTO, errors);
         if(errors.hasErrors()){
-            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+            return badRequest(errors);
         }
 
         Event event = modelMapper.map(eventDTO, Event.class);
@@ -71,6 +71,7 @@ public class EventController {
     }
 
     //overriding이 아니라 경로 뒤에 {id} 덧붙여진다.
+    //조회
     @GetMapping("/{id}")
     public ResponseEntity getEvent(@PathVariable Integer id){
         Optional<Event> optionalEvent = this.eventRepository.findById(id);
@@ -81,5 +82,43 @@ public class EventController {
         EventResource eventResource = new EventResource(event);
         eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
         return ResponseEntity.ok(eventResource);
+    }
+
+    //업데이트
+    @PutMapping("/{id}")
+    public ResponseEntity updateEvent(@PathVariable Integer id,
+                                       @RequestBody EventDTO eventDTO, Errors errors){
+
+        Optional<Event> optionalEvent = this.eventRepository.findById(id);
+        if(optionalEvent.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        //수정 실패하는 경우들..(비어있거나, 이상한 로직의 값이거나, 존재하지 않는 값일경우..등)
+        if(errors.hasErrors()){
+            return badRequest(errors);
+        }
+
+        //값을 제대로 넘겨줬음에도 error발생했다면? logic상의 error이다.
+        this.eventValidator.validate(eventDTO, errors);
+        if(errors.hasErrors()){
+            return badRequest(errors);
+        }
+
+        //문제없으면 update가능
+        Event existingEvent = optionalEvent.get();
+        //현재 event(existingEvent) 전부 EventDTO에 있는 값들이랑 맵핑 해준다.
+        //existingEvent.setName(eventDTO.getName()) 이런식으로.. modelMapper가 다 해줌
+        //map(어디에서, 어디로)
+        //기존에있던 eventDTO에서 existingEvent로
+        this.modelMapper.map(eventDTO, existingEvent);
+        Event savedEvent = this.eventRepository.save(existingEvent);
+        EventResource eventResource = new EventResource(savedEvent);
+        eventResource.add(new Link("/docs/index.html#resources-events-update").withRel("profile"));
+        return ResponseEntity.ok(eventResource);
+    }
+
+    private ResponseEntity<ErrorsResource> badRequest(Errors errors) {
+        return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }
 }

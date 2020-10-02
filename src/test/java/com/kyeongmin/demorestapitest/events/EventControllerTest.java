@@ -1,21 +1,12 @@
 package com.kyeongmin.demorestapitest.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyeongmin.demorestapitest.common.RestDocsConfiguration;
+import com.kyeongmin.demorestapitest.common.BaseControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.stream.IntStream;
@@ -25,23 +16,11 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-@AutoConfigureRestDocs
-@Import(RestDocsConfiguration.class) //다른 bean 불러와서 사용
-@ActiveProfiles("test")
-public class EventControllerTest {
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    ObjectMapper objectMapper;
+public class EventControllerTest extends BaseControllerTest {
 
     @Autowired
     EventRepository eventRepository;
@@ -253,9 +232,106 @@ public class EventControllerTest {
     private Event generateEvent(int index) {
         Event event = Event.builder()
                 .name("event" + index)
-                .description("test event")
+                .description("rest api dev with spring")
+                .beginEnrollmentDateTime(LocalDateTime.of(2020, 9, 30, 23, 28))
+                .closeEnrollmentDateTime(LocalDateTime.of(2020, 10, 1, 23, 28))
+                .beginEventDateTime(LocalDateTime.of(2020, 10, 2, 23, 28))
+                .endEventDateTime(LocalDateTime.of(2020, 10, 3, 23, 28))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("kangNam Station D2 startUP factory")
+                .free(false)
+                .offline(true)
+                .eventStatus(EventStatus.DRAFT)
                 .build();
 
         return this.eventRepository.save(event);
+    }
+
+    @Test
+    @DisplayName("이벤트 (정상) 수정")
+    public void updateEvent() throws Exception {
+        //Given
+        Event event = this.generateEvent(200);
+        //event객체에서 데이터를 담아서, mapper로 mapping
+        EventDTO eventDTO = this.modelMapper.map(event, EventDTO.class);
+        String eventName = "Update Event";
+        eventDTO.setName(eventName);
+
+        //When & Then
+        //update request (put)
+        //특정 {id}에 해당하는 event 수정할 것이다.
+        this.mockMvc.perform(put("/api/events/{id}", event.getId())
+                //데이터 보내기
+                //타입은 json이다.
+                .contentType(MediaType.APPLICATION_JSON)
+                //event 객체 담아서 보낸다.
+                .content(this.objectMapper.writeValueAsString(eventDTO))
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").value(eventName))
+                .andExpect(jsonPath("_links.self").exists())
+        ;
+    }
+
+    //이벤트 입력값이 잘못 된 경우 2가지
+    // 1. logic상 잘못된 경우, 2. 입력값 자체가 없는 경우, 3. 존재하지 않는 event 일 경우
+    @Test
+    @DisplayName("이벤트 (비정상) 수정실패 : 1. 입력값이 잘못 된경우 update 실패!")
+    public void updateEvent400_Wrong() throws Exception {
+        //Given
+        Event event = this.generateEvent(200);
+        EventDTO eventDTO = this.modelMapper.map(event, EventDTO.class);
+        //최대치가 더 작을 경우 Wrong
+        eventDTO.setBasePrice(20000);
+        eventDTO.setMaxPrice(1000);
+
+        //When & Then
+        this.mockMvc.perform(put("/api/events/{id}", event.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(eventDTO))
+        )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("이벤트 (비정상) 수정실패 : 2. 입력값이 비어있는 경우 update 실패!")
+    public void updateEvent400_Empty() throws Exception {
+        //Given
+        Event event = this.generateEvent(200);
+        EventDTO eventDTO = new EventDTO();
+
+        //When & Then
+        this.mockMvc.perform(put("/api/events/{id}", event.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(eventDTO))
+        )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("이벤트 (비정상) 수정실패 : 3. 존재하지 않는 event일 경우 update 실패!")
+    public void updateEvent400() throws Exception {
+        //Given
+        Event event = this.generateEvent(200);
+        //event객체에서 데이터를 담아서, mapper로 mapping
+        EventDTO eventDTO = this.modelMapper.map(event, EventDTO.class);
+
+        //When & Then
+        //update request (put)
+        //특정 {id}에 해당하는 event 수정할 것이다.
+        this.mockMvc.perform(put("/api/events/1231232")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(eventDTO))
+        )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
     }
 }
