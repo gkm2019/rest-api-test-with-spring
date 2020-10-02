@@ -2,12 +2,16 @@ package com.kyeongmin.demorestapitest.events;
 
 import com.kyeongmin.demorestapitest.commons.ErrorsResource;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,5 +59,14 @@ public class EventController {
         //프로필 추가
         eventResource.add(new Link("/docs/index.html").withRel("profile"));
         return ResponseEntity.created(createdURI).body(eventResource);
+    }
+
+    @GetMapping
+    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler){
+        Page<Event> page = this.eventRepository.findAll(pageable);
+        //page와 관련한 정보를 넘겨준다.
+        //현재 페이지, 이전 페이지, 다음 페이지 등의 link 정보를 말한다.
+        var pagedResources = assembler.toModel(page);
+        return ResponseEntity.ok(pagedResources);
     }
 }
