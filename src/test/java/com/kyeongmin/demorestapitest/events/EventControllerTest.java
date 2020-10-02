@@ -2,9 +2,9 @@ package com.kyeongmin.demorestapitest.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyeongmin.demorestapitest.common.RestDocsConfiguration;
-import com.kyeongmin.demorestapitest.commons.TestDescription;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,7 +14,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
@@ -42,7 +42,7 @@ public class EventControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    @TestDescription("정상적으로 이벤트를 생성하는 Test")
+    @DisplayName("정상적으로 이벤트를 생성하는 Test")
     public void createEvent() throws Exception {
         EventDTO event = EventDTO.builder()
                 .name("spring")
@@ -125,7 +125,7 @@ public class EventControllerTest {
     }
 
     @Test
-    @TestDescription("입력 받을 수 없는 값이 전달될 경우 error발생하는 Test")
+    @DisplayName("입력 받을 수 없는 값이 전달될 경우 error발생하는 Test")
     public void createEvent_Bad_Request() throws Exception {
         Event event = Event.builder()
                 .id(100)
@@ -150,12 +150,11 @@ public class EventControllerTest {
                 .content(objectMapper.writeValueAsString(event)))
                 .andDo(print()) //응답이 어떻게 나왔는지 console로 확인 가능
                 .andExpect(status().isBadRequest()) //bad request
-
         ;
     }
 
     @Test
-    @TestDescription("입력값이 비어있는 경우 error 발생하는 Test")
+    @DisplayName("입력값이 비어있는 경우 error 발생하는 Test")
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
         EventDTO eventDTO = EventDTO.builder().name("test_test").build(); //아무값도 없이 보내보자(비어있는 값)
         this.mockMvc.perform(post("/api/events/")
@@ -166,7 +165,7 @@ public class EventControllerTest {
     }
 
     @Test
-    @TestDescription("입력값이 잘못 된 경우 error 발생하는 Test")
+    @DisplayName("입력값이 잘못 된 경우 error 발생하는 Test")
     public void createEvent_Bad_Request_Wrong_Input() throws Exception {
         EventDTO eventDTO = EventDTO.builder()
                 .name("spring")
@@ -182,14 +181,13 @@ public class EventControllerTest {
                 .build();
 
         this.mockMvc.perform(post("/api/events/")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(this.objectMapper.writeValueAsString(eventDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$[0].objectName").exists())
-                .andExpect(jsonPath("$[0].field").exists())
-                .andExpect(jsonPath("$[0].defaultMessage").exists())
-                .andExpect(jsonPath("$[0].code").exists())
-                .andExpect(jsonPath("$[0].rejectedValue").exists())
+                .andExpect(jsonPath("content[0].objectName").exists())
+                .andExpect(jsonPath("content[0].field").exists())
+                .andExpect(jsonPath("content[0].code").exists())
+                .andExpect(jsonPath("_links.index").exists())
         ;
     }
 }

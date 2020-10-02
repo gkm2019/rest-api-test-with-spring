@@ -1,5 +1,6 @@
 package com.kyeongmin.demorestapitest.events;
 
+import com.kyeongmin.demorestapitest.commons.ErrorsResource;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -32,11 +33,11 @@ public class EventController {
     @PostMapping
     public ResponseEntity createEvent(@RequestBody @Valid EventDTO eventDTO, Errors errors) {
         if(errors.hasErrors()){
-            return ResponseEntity.badRequest().body(errors);
+            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
         }
         eventValidator.validate(eventDTO, errors);
         if(errors.hasErrors()){
-            return ResponseEntity.badRequest().body(errors);
+            return ResponseEntity.badRequest().body(new ErrorsResource(errors));
         }
 
         Event event = modelMapper.map(eventDTO, Event.class);
