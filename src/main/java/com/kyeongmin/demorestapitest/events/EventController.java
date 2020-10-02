@@ -11,10 +11,7 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -57,7 +54,7 @@ public class EventController {
         //이벤트 업데이트 정보를 담고있는 link
         eventResource.add(selfLinkBuilder.withRel("update-event"));
         //프로필 추가
-        eventResource.add(new Link("/docs/index.html").withRel("profile"));
+        eventResource.add(new Link("/docs/index.html#resources-events-create").withRel("profile"));
         return ResponseEntity.created(createdURI).body(eventResource);
     }
 
@@ -66,7 +63,9 @@ public class EventController {
         Page<Event> page = this.eventRepository.findAll(pageable);
         //page와 관련한 정보를 넘겨준다.
         //현재 페이지, 이전 페이지, 다음 페이지 등의 link 정보를 말한다.
-        var pagedResources = assembler.toModel(page);
+        //e -> () 페이지 하나하나의 목록에 link를 생성해서 HATEOAS성질을 부여한다.
+        var pagedResources = assembler.toModel(page, e -> new EventResource(e) );
+        pagedResources.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
         return ResponseEntity.ok(pagedResources);
     }
 }

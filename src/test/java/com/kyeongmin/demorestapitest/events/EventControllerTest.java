@@ -213,6 +213,12 @@ public class EventControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page").exists())
+                //eventList [0]첫번째 요소에서 self link가 있는가?
+                //하나의 세부 item 요소에 연결해주는 link가 생성된것이다.
+                .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists()) //profile link 있는가? 확인
+                .andDo(document("query-events"))
         ;
     }
 
