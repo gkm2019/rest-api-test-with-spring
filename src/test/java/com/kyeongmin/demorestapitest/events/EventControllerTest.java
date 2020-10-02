@@ -67,16 +67,14 @@ public class EventControllerTest {
                 .andExpect(jsonPath("free").value(false))
                 .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
-                .andExpect(jsonPath("_links.self").exists())
-                .andExpect(jsonPath("_links.query-events").exists()) //이벤트 목록으로 가는 링크
-                .andExpect(jsonPath("_links.update-event").exists()) //이벤트 목록 update하는 링크
                 //.andDo(document("이 문서의 이름"))
                 //snippet추가는 andDo document안에다 해야한다.
                 .andDo(document("create-event",
                         links(
                                 linkWithRel("self").description("link to self"),
                                 linkWithRel("query-events").description("link to query events"),
-                                linkWithRel("update-event").description("link to update an existing event")
+                                linkWithRel("update-event").description("link to update an existing event"),
+                                linkWithRel("profile").description("link to profile")
                         ),
                         requestHeaders(
                                 //content type 확인해보기
@@ -100,14 +98,7 @@ public class EventControllerTest {
                                 headerWithName(HttpHeaders.LOCATION).description("response header"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
-                        //모든 문서를 다 검증하는 것이 아니라
-                        //link를 뺀 일 부분만 검증하고 싶을 때는 relaxed 붙이기
-                        //relaxed 접두어(prefix) 를 사용하면 문서의 일부분만 확인한다.
-                        //장점 : 문서 일부분만 테스트 가능
-                        //단점 : 정확한 문서를 만들지는 못한다(무시해야해서..)
-                        //이미 윗부분 document 에서 link 문서화 했는데 왜 또 여기서 한번 더 검사를 하는지 모르겠다..
-                        //또 다른 방법은? -> 똑같이 링크도 하나하나 다 적어줘야함
-                        relaxedResponseFields(
+                        responseFields(
                                 fieldWithPath("id").description("identifier of new event"),
                                 fieldWithPath("name").description("name of new event"),
                                 fieldWithPath("description").description("description of new event"),
@@ -121,10 +112,11 @@ public class EventControllerTest {
                                 fieldWithPath("limitOfEnrollment").description("limit of enrollment"),
                                 fieldWithPath("free").description("it tells if this event is free event or not"),
                                 fieldWithPath("offline").description("it tells if this event is offline event or not"),
-                                fieldWithPath("eventStatus").description("event status")
-                                //fieldWithPath("_links.self.href").description("link to self"),
-                                //fieldWithPath("_links.query-events.href").description("link to query event list"),
-                                //fieldWithPath("_links.update-event.href").description("link to update existing event"),
+                                fieldWithPath("eventStatus").description("event status"),
+                                fieldWithPath("_links.self.href").description("link to self"),
+                                fieldWithPath("_links.query-events.href").description("link to query event list"),
+                                fieldWithPath("_links.update-event.href").description("link to update existing event"),
+                                fieldWithPath("_links.profile.href").description("link to profile")
                         )
                 ))
         ;

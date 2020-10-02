@@ -1,6 +1,7 @@
 package com.kyeongmin.demorestapitest.events;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +44,15 @@ public class EventController {
         Event newEvent = this.eventRepository.save(event);
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
         URI createdURI = selfLinkBuilder.toUri();
+
+        //link를 추가해서 HATEOAS성질을 부여한다.
         EventResource eventResource = new EventResource(event);
+        //이벤트 목록들을 담고있는 link
         eventResource.add(linkTo(EventController.class).withRel("query-events"));
+        //이벤트 업데이트 정보를 담고있는 link
         eventResource.add(selfLinkBuilder.withRel("update-event"));
+        //프로필 추가
+        eventResource.add(new Link("/docs/index.html").withRel("profile"));
         return ResponseEntity.created(createdURI).body(eventResource);
     }
 }
