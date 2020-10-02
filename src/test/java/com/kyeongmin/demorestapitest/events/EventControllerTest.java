@@ -201,7 +201,7 @@ public class EventControllerTest {
     public void queryEvents() throws Exception {
         //Given
         //이벤트 30개..
-        IntStream.range(0, 30).forEach(this::getGenerateEvent);
+        IntStream.range(0, 30).forEach(this::generateEvent);
 
         //When 
         //10개로 2번째 페이지 조회(get)
@@ -219,15 +219,43 @@ public class EventControllerTest {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists()) //profile link 있는가? 확인
                 .andDo(document("query-events"))
+        //TODO link, page들에 대한 설명을담은 문서 추가로 생성해야함
         ;
     }
 
-    private void getGenerateEvent(int index) {
+    @Test
+    @DisplayName("기존의 이벤트 중 하나만 조회")
+    public void getEvent() throws Exception {
+        //Given
+        Event event = this.generateEvent(100);
+
+        //When & Then
+        this.mockMvc.perform(get("/api/events/{id}", event.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+                .andDo(document("get-an-event"))
+        //TODO event를 만든 user라면 update가능하게, 아니라면 불가능하게 : 유저 정보에 따라 구분지어야함 (모든 테스트에)
+        ;
+    }
+
+    @Test
+    @DisplayName("없는 이벤트를 조회했을 때 404 응답받기")
+    public void getEvent404() throws Exception {
+        //When & Then
+        this.mockMvc.perform(get("/api/events/11883"))
+                .andExpect(status().isNotFound()) // 존재 하지 않는 event조회했음
+        ;
+    }
+
+    private Event generateEvent(int index) {
         Event event = Event.builder()
                 .name("event" + index)
                 .description("test event")
                 .build();
 
-        this.eventRepository.save(event);
+        return this.eventRepository.save(event);
     }
 }

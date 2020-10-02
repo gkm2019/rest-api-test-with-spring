@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -58,7 +59,7 @@ public class EventController {
         return ResponseEntity.created(createdURI).body(eventResource);
     }
 
-    @GetMapping
+    @GetMapping //get으로 조회한다... get으로 작성해놓고 post요청하면 405error발생함
     public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler){
         Page<Event> page = this.eventRepository.findAll(pageable);
         //page와 관련한 정보를 넘겨준다.
@@ -67,5 +68,18 @@ public class EventController {
         var pagedResources = assembler.toModel(page, e -> new EventResource(e) );
         pagedResources.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
         return ResponseEntity.ok(pagedResources);
+    }
+
+    //overriding이 아니라 경로 뒤에 {id} 덧붙여진다.
+    @GetMapping("/{id}")
+    public ResponseEntity getEvent(@PathVariable Integer id){
+        Optional<Event> optionalEvent = this.eventRepository.findById(id);
+        if(optionalEvent.isEmpty()){ //option event 비어있으면
+            return ResponseEntity.notFound().build(); //nofound 전송 (404 에러 뜰것임)
+        }
+        Event event = optionalEvent.get();
+        EventResource eventResource = new EventResource(event);
+        eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
+        return ResponseEntity.ok(eventResource);
     }
 }
