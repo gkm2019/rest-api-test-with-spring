@@ -87,7 +87,7 @@ public class EventController {
     //업데이트
     @PutMapping("/{id}")
     public ResponseEntity updateEvent(@PathVariable Integer id,
-                                       @RequestBody EventDTO eventDTO, Errors errors){
+                                       @RequestBody @Valid EventDTO eventDTO, Errors errors){
 
         Optional<Event> optionalEvent = this.eventRepository.findById(id);
         if(optionalEvent.isEmpty()){
