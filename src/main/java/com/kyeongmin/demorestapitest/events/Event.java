@@ -1,5 +1,6 @@
 package com.kyeongmin.demorestapitest.events;
 
+import com.kyeongmin.demorestapitest.accounts.Account;
 import lombok.*;
 
 import javax.persistence.*;
@@ -32,6 +33,9 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
+    //단방향 맵핑, Event에서만 Account manager 참조 할 수 있도록 함
+    @ManyToOne
+    private Account manager;
 
     public void update() {
         //Update free
